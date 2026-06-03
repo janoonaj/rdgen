@@ -533,7 +533,10 @@ jobs:
         continue-on-error: false
         shell: bash
         run: |
-          ASSETS_DIR="build/macos/Build/Products/Release/RustDesk.app/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
+          RELEASE_DIR="flutter/build/macos/Build/Products/Release"
+          APP_DIR=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" | head -1)
+          if [ -z "$APP_DIR" ]; then echo "ERROR: no se encontro ninguna .app en $RELEASE_DIR"; exit 1; fi
+          ASSETS_DIR="$APP_DIR/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
           mkdir -p "$ASSETS_DIR"
           if [ -f "$ASSETS_DIR/icon.svg" ]; then
             mv "$ASSETS_DIR/icon.svg" "$ASSETS_DIR/icon.svg.bak"
@@ -549,7 +552,10 @@ jobs:
         continue-on-error: false
         shell: bash
         run: |
-          ASSETS_DIR="build/macos/Build/Products/Release/RustDesk.app/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
+          RELEASE_DIR="flutter/build/macos/Build/Products/Release"
+          APP_DIR=$(find "$RELEASE_DIR" -maxdepth 1 -name "*.app" | head -1)
+          if [ -z "$APP_DIR" ]; then echo "ERROR: no se encontro ninguna .app en $RELEASE_DIR"; exit 1; fi
+          ASSETS_DIR="$APP_DIR/Contents/Frameworks/App.framework/Versions/Current/Resources/flutter_assets/assets"
           mkdir -p "$ASSETS_DIR"
           curl -k -L --tlsv1.2 --proto =https --ssl-reqd \
             -H "User-Agent: Mozilla/5.0" \
