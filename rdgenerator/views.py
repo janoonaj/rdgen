@@ -1,6 +1,6 @@
 import io
 from pathlib import Path
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, Http404
 from django.shortcuts import render
 from django.core.files.base import ContentFile
 import os
@@ -17,6 +17,30 @@ from .forms import GenerateForm
 from .models import GithubRun
 from PIL import Image
 from urllib.parse import quote
+
+
+# --- Seguridad: saneo de rutas contra path traversal (C1/C2) ---
+_UUID_RE = re.compile(r'^[0-9a-fA-F-]{1,64}$')
+
+
+def _check_uuid(u):
+    if not u or not _UUID_RE.match(u):
+        raise Http404("Invalid uuid")
+    return u
+
+
+def _safe_name(name):
+    # Quita cualquier componente de ruta: deja solo el nombre de fichero
+    return os.path.basename(name or "")
+
+
+def _safe_join(base_dir, *parts):
+    # Une partes bajo base_dir y rechaza cualquier intento de salir (../, rutas absolutas)
+    base = os.path.realpath(base_dir)
+    target = os.path.realpath(os.path.join(base, *parts))
+    if target != base and not target.startswith(base + os.sep):
+        raise Http404("Invalid path")
+    return target
 
 def generator_view(request):
     if request.method == 'POST':
@@ -393,9 +417,9 @@ def check_for_file(request):
         })
 
 def download(request):
-    filename = request.GET['filename']
-    uuid = request.GET['uuid']
-    file_path = os.path.join('exe', uuid, filename)
+    filename = _safe_name(request.GET['filename'])
+    uuid = _check_uuid(request.GET['uuid'])
+    file_path = _safe_join('exe', uuid, filename)
     with open(file_path, 'rb') as file:
         content = file.read()
     response = HttpResponse(content, headers={
@@ -405,10 +429,9 @@ def download(request):
     return response
 
 def get_png(request):
-    filename = request.GET['filename']
-    uuid = request.GET['uuid']
-    #filename = filename+".exe"
-    file_path = os.path.join('png',uuid,filename)
+    filename = _safe_name(request.GET['filename'])
+    uuid = _check_uuid(request.GET['uuid'])
+    file_path = _safe_join('png', uuid, filename)
     with open(file_path, 'rb') as file:
         response = HttpResponse(file, headers={
             'Content-Type': 'application/vnd.microsoft.portable-executable',
@@ -529,9 +552,10 @@ def save_png(file, uuid, domain, name):
 
 def save_custom_client(request):
     file = request.FILES['file']
-    myuuid = request.POST.get('uuid')
-    file_save_path = "exe/%s/%s" % (myuuid, file.name)
-    Path("exe/%s" % myuuid).mkdir(parents=True, exist_ok=True)
+    myuuid = _check_uuid(request.POST.get('uuid'))
+    filename = _safe_name(file.name)
+    Path(os.path.join('exe', myuuid)).mkdir(parents=True, exist_ok=True)
+    file_save_path = _safe_join('exe', myuuid, filename)
     with open(file_save_path, "wb+") as f:
         for chunk in file.chunks():
             f.write(chunk)
@@ -562,9 +586,8 @@ def cleanup_secrets(request):
     return HttpResponse("Cleanup successful", status=200)
 
 def get_zip(request):
-    filename = request.GET['filename']
-    #filename = filename+".exe"
-    file_path = os.path.join('temp_zips',filename)
+    filename = _safe_name(request.GET['filename'])
+    file_path = _safe_join('temp_zips', filename)
     with open(file_path, 'rb') as file:
         response = HttpResponse(file, headers={
             'Content-Type': 'application/vnd.microsoft.portable-executable',
