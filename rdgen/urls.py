@@ -29,7 +29,7 @@ urlpatterns = [
     url(r'^download',views.download),
     url(r'^creategh',views.create_github_run),
     url(r'^updategh',views.update_github_run),
-    url(r'^startgh',views.startgh),
+    # url(r'^startgh',views.startgh),  # DESHABILITADO (C3): via API de disparo sin auth. Solo usamos la web Django.
     url(r'^get_png',views.get_png),
     url(r'^save_custom_client',views.save_custom_client),
     url(r'^get_zip',views.get_zip),
