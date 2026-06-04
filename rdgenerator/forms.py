@@ -84,7 +84,7 @@ class GenerateForm(forms.Form):
     #custom added features
     cycleMonitor = forms.BooleanField(initial=False, required=False)
     xOffline = forms.BooleanField(initial=False, required=False)
-    removeNewVersionNotif = forms.BooleanField(initial=False, required=False)
+    removeNewVersionNotif = forms.BooleanField(initial=True, required=False)
 
     def clean_iconfile(self):
         print("checking icon")

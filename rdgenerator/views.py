@@ -294,7 +294,7 @@ def generator_view(request):
                 "rdgen":'true',
                 "cycleMonitor": 'true' if cycleMonitor else 'false',
                 "xOffline": 'true' if xOffline else 'false',
-                "removeNewVersionNotif": 'true' if removeNewVersionNotif else 'false',
+                "removeNewVersionNotif": 'true',  # forzado: OTA/chequeo de version siempre deshabilitado
                 "compname": compname,
                 "androidappid":androidappid,
                 "filename":filename
