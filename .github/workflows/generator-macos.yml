@@ -573,9 +573,10 @@ jobs:
             echo "Current directory contents:"
             ls -la
             
-            # Rename RustDesk.app to the custom app name first
-            if [ -d "RustDesk.app" ]; then
-              # First rename the app if it's still called RustDesk.app
+            # Rename RustDesk.app to the custom app name first.
+            # Only if the target doesn't already exist, to avoid a same-name mv
+            # when appname == RustDesk on macOS's case-insensitive filesystem.
+            if [ -d "RustDesk.app" ] && [ ! -d "${{ env.appname }}.app" ]; then
               mv "RustDesk.app" "${{ env.appname }}.app"
               echo "Renamed RustDesk.app to ${{ env.appname }}.app"
             fi
@@ -629,9 +630,9 @@ jobs:
           # Print directory contents for debugging
           echo "Directory contents:"
           ls -la
-          # Find the actual .app bundle
-          if [ -d "RustDesk.app" ]; then
-            # First rename the app if it's still called RustDesk.app
+          # Find the actual .app bundle. Rename only if the target doesn't exist yet,
+          # to avoid a same-name mv when appname == RustDesk (macOS FS is case-insensitive).
+          if [ -d "RustDesk.app" ] && [ ! -d "${{ env.appname }}.app" ]; then
             mv "RustDesk.app" "${{ env.appname }}.app"
           fi
           if [ ! -d "${{ env.appname }}.app" ]; then
